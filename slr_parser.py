@@ -303,15 +303,6 @@ def createFollow(ter , nonT ,S):
         Follow[i] = list(set(Follow[i]))
         if('@' in Follow[i]):
             Follow[i].remove('@')
-    
-    '''for i in list(nonT.keys()):
-        if( not checked[i]):
-            follow(i,nonT,checked)
-            Follow[i] = list(set(Follow[i]))
-            if(len(Follow[i]) == 0):
-                checked[i] = False
-       ''' 
-
 
 
 #------------------------ First and Follow ends --------------------
@@ -334,8 +325,6 @@ def slr_parser(prod, term, num_term, start_sym, query):
     
     for i in prod.replace(" ", "").split("\n"):
         nonTerminals[i.split("->")[0]] = i.split("->")[1].split("|")
-    
-    # --- Old Rules-------
 
     S = start_sym
     terminals+=['$']
@@ -415,7 +404,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
         print("accepted")
     else:
         print("Not accepted")
-    return [I, parseTable, First, Follow, accepted]
+    return [I, parseTable, accepted, symbols]
 
 #------------------------------------------------------------------------
 

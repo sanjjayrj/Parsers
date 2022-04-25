@@ -1,17 +1,21 @@
 # 1 ----------------- To Find Closure ----------------
 
-def closure(I,nonT):
-    J = I
-
+def closure(canonical,nonT):
+    J = canonical
+    # iterate through all the non terminals and add to canonical grammar
     for item in J :
-        #print(item)
+        """
+            Adding closure operator to the productions,
+            and creating canonical grammar and appending to J,
+            by iterating through production in base grammar
+        """
         index = item[1].index('.')
         if(index<(len(item[1])-1) and item[1][index+1] in nonT):
-            #print('item : ',item[1][index+1])
+            # iterates through all production of non terminal
+            # and appends to list
             for production in nonT[item[1][index+1]]:
                 if( [item[1][index+1],str('.')+str(production)] not in J):
                     J.append([item[1][index+1],str('.')+str(production)])
-                    #print([item[1][index+1],str('.')+str(production)])
     return J
 
 
@@ -22,51 +26,50 @@ def closure(I,nonT):
 # 2. --------------- Set of Canonical Items ---------------------
 
 def setOfItems(start,nonTer,ter):
-    I.append(closure([['start','.'+start+'$']],nonTer))
+    canonical.append(closure([['start','.'+start+'$']],nonTer))
     ter += list(nonTer.keys())
-    #print("list of inputs : " , ter)
-    for conI in I:
+    # ter variable contains all the inputs acceptable by the grammar
+    for conI in canonical:
         for grammar in ter:
             if(grammar == '$'):
                 continue
             #print("grammar : ",grammar)
             goto = False
-            goto1 = False
             shift = False
-            shift1 = False
-            reduce = False
             close = []
+            """
+                iterating through all production rules,
+                and moving the closure operator to the right.
+            """
             for item in conI:
-                #print("item  : ",item)
                 if(item[1].index('.')<(len(item[1])-1) and item[1][item[1].index('.')+1] is grammar):
-                    close.append([item[0],item[1][:item[1].index('.')]+grammar+'.'+item[1][item[1].index('.')+2:]])
-                #else:
-                #    print(item)
-            #print("close : ",close)
+                    close.append([item[0],item[1][:item[1].index('.')] + grammar + '.' + item[1][item[1].index('.') + 2:]])
+
             l = closure(close,nonTer)
             if(len(l) == 0):
                 continue
-            #print("closure : ", l)
+            """
+                Based on where the keys are terminal or not, 
+                the parse table is filled with shift values or goto respectively
+                with the state number, and length of the canonical respectively,
+                followed by that grammar
+            """
             if(grammar in nonTer.keys()):
-                goto1 = True
+                goto = True
             else:
-                shift1 = True
-            if(l not in I):
-                if(goto1):
-                    state.append(['g',I.index(conI)+1,len(I)+1,grammar])
-                    goto = True
-                elif(shift1):
-                    shift = True
-                    state.append(['s',I.index(conI)+1,len(I)+1,grammar])
-                I.append(l)
+                shift = True
+            if(l not in canonical):
+                if(goto):
+                    state.append(['G',canonical.index(conI)+1,len(canonical)+1,grammar])
+                elif(shift):
+                    state.append(['S',canonical.index(conI)+1,len(canonical)+1,grammar])
+                canonical.append(l)
 
             else:
-               if(goto1):
-                    goto = True
-                    state.append(['g',I.index(conI)+1,I.index(l)+1,grammar])
-               elif(shift1):
-                   shift = True
-                   state.append(['s',I.index(conI)+1,I.index(l)+1,grammar])
+               if(goto):
+                    state.append(['G',canonical.index(conI)+1,canonical.index(l)+1,grammar])
+               elif(shift):
+                   state.append(['S',canonical.index(conI)+1,canonical.index(l)+1,grammar])
                         
 
     
@@ -76,17 +79,16 @@ def setOfItems(start,nonTer,ter):
 
 # 3. -----------------Create a Parse Table ------------------------
 
-def toReduce(rule,accept,start):
+def toReduce(rule, accept,start):
     s = ['start',start+'.$']
-    reduce = [ [] for i in range(len(I)) ]
-    for parState in I:
-        #print(s,parState)
+    reduce = [ [] for i in range(len(canonical)) ]
+    for parState in canonical:
         if(s in parState):
             #print("here;")
-            accept = I.index(parState)
+            accept = canonical.index(parState)
         for item in parState:
             if( item in rule):
-                reduce[I.index(parState)].append(rule.index(item))
+                reduce[canonical.index(parState)].append(rule.index(item))
 
     return accept, reduce
 
@@ -186,34 +188,38 @@ terminals = []
 nonTerminals = dict()
 rule = []
 state = []
-I = []
+canonical = []
 accept = -1
 symbols = []
 symbolMap = dict()
 
 def lr_parser(prod, term, num_term, start_sym, query):
-    terminals = term.split(",")[:num_term]
-
+    terminals = term.lower().split(",")[:num_term]
+    """
+        Splitting non terminals from the input grammar
+        and storing to dictionary with the non terminal
+        as key.
+    """
     for i in prod.replace(" ", "").split("\n"):
         nonTerminals[i.split("->")[0]] = i.split("->")[1].split("|")
     
-    # --- Old Rules-------
-
-    S = start_sym
+    Start = start_sym
     terminals+=['$']
-    print("Productions : ")
+
+    print("Input Grammar:")
     for i in nonTerminals.keys():
-        print(i,"-->",end=' ')
+        print(i,"->",end=' ')
         for j in nonTerminals[i]:
             print(j,end= ' | ')
         print()
 
-    setOfItems(S,nonTerminals,terminals)
+    # creating canonical grammar tree
+    setOfItems(Start,nonTerminals,terminals)
     print("canonicals Production : ")
-    for count , i in enumerate(I):
+    for count , i in enumerate(canonical):
         print(count+1 , i)
 
-    print("state Transitions : ")
+    print("State Transition Values: ")
     for count , i in enumerate(state):
         print(count+1, i)
 
@@ -221,13 +227,13 @@ def lr_parser(prod, term, num_term, start_sym, query):
         for j in nonTerminals[i]:
             rule.append([i,j+str('.')])
 
-    print('rule :')
+    print('Final Rule:')
     for i in rule:
         print(i)
 
     # -------  To find the reduction rules - -- - -- ---
-    reduce = [ [] for _ in range(len(I)) ]
-    accept, reduce = toReduce(rule,-1,S)
+    reduce = [ [] for _ in range(len(canonical)) ]
+    accept, reduce = toReduce(rule,-1,Start)
 
     print("reduce")
     for count,i in enumerate(reduce):
@@ -245,7 +251,7 @@ def lr_parser(prod, term, num_term, start_sym, query):
     for i in nonTerminals.keys():
         terminals.remove(i)
 
-    parseTable = [ ['-' for _ in range(len(symbols))] for _ in range(len(I)) ]
+    parseTable = [ ['-' for _ in range(len(symbols))] for _ in range(len(canonical)) ]
     parseTable = createParseTable(parseTable, reduce, accept, terminals)
 
     # ---Parse Table-----
@@ -266,7 +272,7 @@ def lr_parser(prod, term, num_term, start_sym, query):
         print("accepted")
     else:
         print("Not accepted")
-    return [I, parseTable, accepted]
+    return [canonical, parseTable, accepted, symbols]
 
 #------------------------------------------------------------------------
 
@@ -275,5 +281,5 @@ def lr_parser(prod, term, num_term, start_sym, query):
 if __name__ == '__main__':
     prod = "E -> E+T | T \n T -> T*F | F \n F -> (E) | #"
     term = "+,(,),*,@,#"
-    print(prod.replace(" ", "").split("\n"))
+    #print(prod.replace(" ", "").split("\n"))
     canonical, parsetable, accept = lr_parser(prod, term, 6, "E", "#+#*#")
