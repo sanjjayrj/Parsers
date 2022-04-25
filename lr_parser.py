@@ -27,7 +27,7 @@ def setOfItems(start,nonTer,ter):
     #print("list of inputs : " , ter)
     for conI in I:
         for grammar in ter:
-            if(grammar is '$'):
+            if(grammar == '$'):
                 continue
             #print("grammar : ",grammar)
             goto = False
@@ -151,12 +151,12 @@ def parseString(parseTable, rule,string):
         while(index < len(string)):
             print(st , string , index , sep = '\t\t ')
             c = parseTable[int(st.top())][symbolMap[string[index]]][0]
-            if(c is 'a'):
+            if(c == 'a'):
                 flag = True
                 break
             pt = parseTable[int(st.top())][symbolMap[string[index]]][1:]
             pt = int(pt)
-            if( c is 'r'):
+            if( c == 'r'):
                 l = len(rule[pt][1])
                 l *= 2
                 l -= 2 #'.' is also considered 
@@ -208,11 +208,8 @@ def lr_parser(prod, term, num_term, start_sym, query):
             print(j,end= ' | ')
         print()
 
-    print("terminals:",terminals)
     setOfItems(S,nonTerminals,terminals)
-    print(terminals)
-    print("non terminal:", nonTerminals)
-    print("canonicals Items : ")
+    print("canonicals Production : ")
     for count , i in enumerate(I):
         print(count+1 , i)
 
@@ -229,7 +226,7 @@ def lr_parser(prod, term, num_term, start_sym, query):
         print(i)
 
     # -------  To find the reduction rules - -- - -- ---
-    reduce = [ [] for i in range(len(I)) ]
+    reduce = [ [] for _ in range(len(I)) ]
     accept, reduce = toReduce(rule,-1,S)
 
     print("reduce")
@@ -264,19 +261,19 @@ def lr_parser(prod, term, num_term, start_sym, query):
         print()
 
     query+='$'
-    if(parseString(parseTable, rule, query)):
+    accepted = parseString(parseTable, rule, query)
+    if(accepted):
         print("accepted")
-        return [I, parseTable, True]
     else:
         print("Not accepted")
-        return [I, parseTable, False]
+    return [I, parseTable, accepted]
 
 #------------------------------------------------------------------------
 
 
 # Testings
 if __name__ == '__main__':
-    prod = "S - > AA \n A -> aA|b"
-    term = "a,b,c,d,e,f"
+    prod = "E -> E+T | T \n T -> T*F | F \n F -> (E) | #"
+    term = "+,(,),*,@,#"
     print(prod.replace(" ", "").split("\n"))
-    canonical, parsetable, accept = lr_parser(prod, term, 2, "S", "aab")
+    canonical, parsetable, accept = lr_parser(prod, term, 6, "E", "#+#*#")

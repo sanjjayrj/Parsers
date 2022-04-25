@@ -28,7 +28,7 @@ def setOfItems(start,nonTer,ter):
     #print("list of inputs : " , ter)
     for conI in I:
         for grammar in ter:
-            if(grammar is '$'):
+            if(grammar == '$'):
                 continue
             #print("grammar : ",grammar)   
             goto = False
@@ -77,8 +77,9 @@ def setOfItems(start,nonTer,ter):
 
 # 3. -----------------Create a Parse Table ------------------------
 
-def toReduce(rule,accept,start):
+def toReduce(rule, accept, start):
     s = ['start',start+'.$']
+    reduce = [ [] for _ in range(len(I)) ]
     for parState in I:
         #print(s,parState)
         if(s in parState):
@@ -87,8 +88,7 @@ def toReduce(rule,accept,start):
         for item in parState:
             if( item in rule):
                 reduce[I.index(parState)].append(rule.index(item))
-
-    return accept
+    return accept, reduce
 
                
 
@@ -98,7 +98,13 @@ def toReduce(rule,accept,start):
 
 # 4. --------------------- To Parse --------------------------------
 
-def createParseTable(ter,Follow,rule):
+def createParseTable(parseTable, reduce, accept, Follow, rule):
+    print(parseTable)
+    print(reduce)
+    print(Follow)
+    print(rule)
+    print(state)
+
     for i in state:
         parseTable[i[1]-1][symbolMap[i[3]]] = i[0]+str(i[2]-1)
 
@@ -106,8 +112,9 @@ def createParseTable(ter,Follow,rule):
 
     for i in reduce:
         if(len(i)>0):
-            for j in Follow[rule[int(i[0])][0]]:
+            for j in Follow[rule[i[0]][0]]:
                 parseTable[reduce.index(i)][symbolMap[j]] = 'r'+str(i[0])
+    return parseTable
 
 # (i) Stack -------------------------
 class Stack:
@@ -140,37 +147,41 @@ class Stack:
         return 'stack [{}]'.format(', '.join([ str(i) for i in reversed(self.__storage) ]))
 
 #--------------------Stack Defn ENDS ------------------------------------------
-def parseString(rule,string):
-    index = 0
-    flag = False
-    st = Stack()
-    st.push('0')
-    while(index < len(string)):
-        print(st , string , index , sep = '\t\t ')
-        c = parseTable[int(st.top())][symbolMap[string[index]]][0]
-        if(c is 'a'):
-            flag = True
-            break
-        pt = parseTable[int(st.top())][symbolMap[string[index]]][1:]
-        #print("point : ",pt)
-        pt = int(pt)
-        if( c is 'r'):
-            l = len(rule[pt][1])
-            l *= 2
-            l -= 2 #'.' is also considered 
-            if(l >= st.length()):
+def parseString(parseTable, rule,string):
+    try:
+        index = 0
+        flag = False
+        st = Stack()
+        st.push('0')
+        while(index < len(string)):
+            print(st , string , index , sep = '\t\t ')
+            c = parseTable[int(st.top())][symbolMap[string[index]]][0]
+            if(c == 'a'):
+                flag = True
                 break
+            pt = parseTable[int(st.top())][symbolMap[string[index]]][1:]
+            #print("point : ",pt)
+            pt = int(pt)
+            if( c == 'r'):
+                l = len(rule[pt][1])
+                l *= 2
+                l -= 2 #'.' is also considered 
+                if(l >= st.length()):
+                    break
+                else:
+                    for i in range(l):
+                        st.pop()
+                    top = int(st.top())
+                    st.push(rule[pt][0])
+                    st.push(parseTable[top][symbolMap[st.top()]][1:])
             else:
-                for i in range(l):
-                    st.pop()
-                top = int(st.top())
-                st.push(rule[pt][0])
-                st.push(parseTable[top][symbolMap[st.top()]][1:])
-        else:
-            st.push(string[index])
-            st.push(str(pt))
-            index+=1
-    return flag    
+                st.push(string[index])
+                st.push(str(pt))
+                index+=1
+        return flag
+    except Exception as e:
+        print(e)
+        return False    
         
 # ------------------------------------------------------------------
 
@@ -313,8 +324,7 @@ Follow = dict()
 terminals = []
 nonTerminals = dict()
 symbolMap = dict()
-parseTable = []
-reduce = []
+rule = []
 accept = -1
 state = []
 I = []
@@ -337,16 +347,13 @@ def slr_parser(prod, term, num_term, start_sym, query):
         print()
 
     setOfItems(S,nonTerminals,terminals)
-    print("canonicals Items : ")
+    print("canonicals Production : ")
     for count , i in enumerate(I):
         print(count+1 , i)
 
     print("state Transitions : ")
     for count , i in enumerate(state):
         print(count+1, i)
-
-    rule = []
-    accept = -1
 
     for i in nonTerminals.keys():
         for j in nonTerminals[i]:
@@ -357,8 +364,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
         print(i)
 
     # -------  To find the reduction rules - -- - -- ---
-    reduce = [ [] for i in range(len(I)) ]
-    accept = toReduce(rule,accept,S)
+    accept, reduce = toReduce(rule, -1, S)
 
     print("reduce")
     for count,i in enumerate(reduce):
@@ -374,23 +380,22 @@ def slr_parser(prod, term, num_term, start_sym, query):
         symbolMap[i] = count
     print(symbols)
 
-    parseTable = [ ['-' for i in range(len(symbols))] for j in range(len(I)) ]
-
     for i in nonTerminals.keys():
         terminals.remove(i)
 
     #-------------- First and Follow ----------
     createFirst(terminals,nonTerminals)
-
-
     createFollow(terminals,nonTerminals,S)
+
+
+    parseTable = [ ['-' for i in range(len(symbols))] for j in range(len(I)) ]
 
     print("{}\t\t\t\t{}\t\t\t\t{}".format('Grammar Rule','First','Follow'))
     for i in nonTerminals.keys():
         print("{}\t\t\t\t{}\t\t\t\t{}".format(i,First[i],Follow[i]))
 
     #----------------------Done-------------------------------- 
-    createParseTable(terminals,Follow,rule)
+    parseTable = createParseTable(parseTable, reduce, accept, Follow, rule)
 
     # ---Parse Table-----
     print('Parse Table') 
@@ -405,19 +410,19 @@ def slr_parser(prod, term, num_term, start_sym, query):
         print()
 
     query+='$'
-
-    if(parseString(rule,query)):
+    accepted = parseString(parseTable, rule, query)
+    if(accepted):
         print("accepted")
     else:
         print("Not accepted")
-
+    return [I, parseTable, First, Follow, accepted]
 
 #------------------------------------------------------------------------
 
 
 # Testings
 if __name__ == '__main__':
-    prod = "S - > AA \n A -> aA|b"
-    term = "a,b,c,d,e,f"
+    prod = "E -> E+T | T \n T -> T*F | F \n F -> (E) | # "
+    term = "+,(,),*,@,#"
     print(prod.replace(" ", "").split("\n"))
-    canonical, parsetable, accept = slr_parser(prod, term, 2, "S", "aab")
+    canonical, parsetable, First, Follow, accept = slr_parser(prod, term, 6, "E", "#+#*#")
