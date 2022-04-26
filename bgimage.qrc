@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="bgImage">
+    <file>graphics.webp</file>
+    <file>default-yellow.webp</file>
+  </qresource>
+</RCC>
