@@ -30,8 +30,8 @@ def setOfItems(start,nonTer,ter):
     ter += list(nonTer.keys())
     # ter variable contains all the inputs acceptable by the grammar
     for conI in canonical:
-        for grammar in ter:
-            if(grammar == '$'):
+        for symbol in ter:
+            if(symbol == '$'):
                 continue
             #print("grammar : ",grammar)
             goto = False
@@ -42,8 +42,8 @@ def setOfItems(start,nonTer,ter):
                 and moving the closure operator to the right.
             """
             for item in conI:
-                if(item[1].index('.')<(len(item[1])-1) and item[1][item[1].index('.')+1] is grammar):
-                    close.append([item[0],item[1][:item[1].index('.')] + grammar + '.' + item[1][item[1].index('.') + 2:]])
+                if(item[1].index('.')<(len(item[1])-1) and item[1][item[1].index('.')+1] is symbol):
+                    close.append([item[0],item[1][:item[1].index('.')] + symbol + '.' + item[1][item[1].index('.') + 2:]])
 
             l = closure(close,nonTer)
             if(len(l) == 0):
@@ -54,22 +54,22 @@ def setOfItems(start,nonTer,ter):
                 with the state number, and length of the canonical respectively,
                 followed by that grammar
             """
-            if(grammar in nonTer.keys()):
+            if(symbol in nonTer.keys()):
                 goto = True
             else:
                 shift = True
             if(l not in canonical):
                 if(goto):
-                    state.append(['G',canonical.index(conI)+1,len(canonical)+1,grammar])
+                    state.append(['G',canonical.index(conI)+1,len(canonical)+1,symbol])
                 elif(shift):
-                    state.append(['S',canonical.index(conI)+1,len(canonical)+1,grammar])
+                    state.append(['S',canonical.index(conI)+1,len(canonical)+1,symbol])
                 canonical.append(l)
 
             else:
                if(goto):
-                    state.append(['G',canonical.index(conI)+1,canonical.index(l)+1,grammar])
+                    state.append(['G',canonical.index(conI)+1,canonical.index(l)+1,symbol])
                elif(shift):
-                   state.append(['S',canonical.index(conI)+1,canonical.index(l)+1,grammar])
+                   state.append(['S',canonical.index(conI)+1,canonical.index(l)+1,symbol])
                         
 
     
@@ -109,7 +109,7 @@ def createParseTable(parseTable, reduce, accept,  ter):
     for i in reduce:
         if(len(i)>0):
             for j in ter:
-                parseTable[reduce.index(i)][symbolMap[j]] = 'r'+str(i[0])
+                parseTable[reduce.index(i)][symbolMap[j]] = 'R'+str(i[0])
     return parseTable
 
 # (i) Stack -------------------------
@@ -144,7 +144,7 @@ class Stack:
 
 #--------------------Stack Defn ENDS ------------------------------------------
 def parseString(parseTable, rule,string):
-    
+    print(symbolMap)
     try:
         index = 0
         flag = False
@@ -158,7 +158,7 @@ def parseString(parseTable, rule,string):
                 break
             pt = parseTable[int(st.top())][symbolMap[string[index]]][1:]
             pt = int(pt)
-            if( c == 'r'):
+            if( c == 'R'):
                 l = len(rule[pt][1])
                 l *= 2
                 l -= 2 #'.' is also considered 
@@ -282,4 +282,4 @@ if __name__ == '__main__':
     prod = "E -> E+T | T \n T -> T*F | F \n F -> (E) | #"
     term = "+,(,),*,@,#"
     #print(prod.replace(" ", "").split("\n"))
-    canonical, parsetable, accept = lr_parser(prod, term, 6, "E", "#+#*#")
+    canonical, parsetable, accept, symbols = lr_parser(prod, term, 6, "E", "#+#*#")

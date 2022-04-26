@@ -1,7 +1,7 @@
 # 1 ----------------- To Find Closure ----------------
 
-def closure(I,nonT):
-    J = I
+def closure(canonical,nonT):
+    J = canonical
 
     for item in J :
         #print(item)
@@ -22,20 +22,17 @@ def closure(I,nonT):
 # 2. --------------- Set of Canonical Items ---------------------
 
 def setOfItems(start,nonTer,ter):
-    I.append(closure([['start','.'+start+'$']],nonTer))
-    #print(I)
+    canonical.append(closure([['start','.'+start+'$']],nonTer))
+    #print(canonical)
     ter += list(nonTer.keys())
     #print("list of inputs : " , ter)
-    for conI in I:
+    for conI in canonical:
         for grammar in ter:
             if(grammar == '$'):
                 continue
             #print("grammar : ",grammar)   
-            goto = False
             goto1 = False
-            shift = False
             shift1 = False
-            reduce = False
             close = []
             for item in conI:
                 #print("item  : ",item)
@@ -52,22 +49,18 @@ def setOfItems(start,nonTer,ter):
                 goto1 = True
             else:
                 shift1 = True
-            if(l not in I):
+            if(l not in canonical):
                 if(goto1):
-                    state.append(['g',I.index(conI)+1,len(I)+1,grammar])
-                    goto = True
+                    state.append(['G',canonical.index(conI)+1,len(canonical)+1,grammar])
                 elif(shift1):
-                    shift = True
-                    state.append(['s',I.index(conI)+1,len(I)+1,grammar])
-                I.append(l)
+                    state.append(['S',canonical.index(conI)+1,len(canonical)+1,grammar])
+                canonical.append(l)
 
             else:
                if(goto1):
-                    goto = True
-                    state.append(['g',I.index(conI)+1,I.index(l)+1,grammar])
+                    state.append(['G',canonical.index(conI)+1,canonical.index(l)+1,grammar])
                elif(shift1):
-                   shift = True
-                   state.append(['s',I.index(conI)+1,I.index(l)+1,grammar])
+                   state.append(['S',canonical.index(conI)+1,canonical.index(l)+1,grammar])
                         
 
     
@@ -79,15 +72,15 @@ def setOfItems(start,nonTer,ter):
 
 def toReduce(rule, accept, start):
     s = ['start',start+'.$']
-    reduce = [ [] for _ in range(len(I)) ]
-    for parState in I:
+    reduce = [ [] for _ in range(len(canonical)) ]
+    for parState in canonical:
         #print(s,parState)
         if(s in parState):
             #print("here;")
-            accept = I.index(parState)
+            accept = canonical.index(parState)
         for item in parState:
             if( item in rule):
-                reduce[I.index(parState)].append(rule.index(item))
+                reduce[canonical.index(parState)].append(rule.index(item))
     return accept, reduce
 
                
@@ -318,7 +311,7 @@ symbolMap = dict()
 rule = []
 accept = -1
 state = []
-I = []
+canonical = []
 
 def slr_parser(prod, term, num_term, start_sym, query):
     terminals = term.split(",")[:num_term]
@@ -337,7 +330,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
 
     setOfItems(S,nonTerminals,terminals)
     print("canonicals Production : ")
-    for count , i in enumerate(I):
+    for count , i in enumerate(canonical):
         print(count+1 , i)
 
     print("state Transitions : ")
@@ -377,7 +370,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
     createFollow(terminals,nonTerminals,S)
 
 
-    parseTable = [ ['-' for i in range(len(symbols))] for j in range(len(I)) ]
+    parseTable = [ ['-' for i in range(len(symbols))] for j in range(len(canonical)) ]
 
     print("{}\t\t\t\t{}\t\t\t\t{}".format('Grammar Rule','First','Follow'))
     for i in nonTerminals.keys():
@@ -404,7 +397,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
         print("accepted")
     else:
         print("Not accepted")
-    return [I, parseTable, accepted, symbols]
+    return [canonical, parseTable, accepted, symbols]
 
 #------------------------------------------------------------------------
 
@@ -414,4 +407,4 @@ if __name__ == '__main__':
     prod = "E -> E+T | T \n T -> T*F | F \n F -> (E) | # "
     term = "+,(,),*,@,#"
     print(prod.replace(" ", "").split("\n"))
-    canonical, parsetable, First, Follow, accept = slr_parser(prod, term, 6, "E", "#+#*#")
+    canonical, parsetable, accept, symbols = slr_parser(prod, term, 6, "E", "#+#*#")
