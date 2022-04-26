@@ -225,7 +225,9 @@ def createFirst(ter , nonT ):
     for i in list(nonT.keys()):
         checked[i] = False
         First[i] = []
-
+    print("list")
+    print(checked)
+    print(First)
     #---- first --------
     for i in list(nonT.keys()):
         if(not checked[i]):
