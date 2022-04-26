@@ -106,7 +106,7 @@ def createParseTable(parseTable, reduce, accept, Follow, rule):
     for i in reduce:
         if(len(i)>0):
             for j in Follow[rule[i[0]][0]]:
-                parseTable[reduce.index(i)][symbolMap[j]] = 'r'+str(i[0])
+                parseTable[reduce.index(i)][symbolMap[j]] = 'R'+str(i[0])
     return parseTable
 
 # (i) Stack -------------------------
@@ -155,7 +155,7 @@ def parseString(parseTable, rule,string):
             pt = parseTable[int(st.top())][symbolMap[string[index]]][1:]
             #print("point : ",pt)
             pt = int(pt)
-            if( c == 'r'):
+            if( c == 'R'):
                 l = len(rule[pt][1])
                 l *= 2
                 l -= 2 #'.' is also considered 
@@ -187,6 +187,12 @@ def first(nT,nonT,checked):
     if(checked[nT]):
         return
     else:
+        """
+            For each rules for the non-terminals passed,
+            we traverse and find the first non-terminal not checked.
+            And first of that terminal is added to the list which is 
+            the initial list.
+        """
         for i in nonT[nT]:
             last = True
             for j in i:
@@ -212,9 +218,7 @@ def first(nT,nonT,checked):
             if(last):
                 First[nT].append('@')
         checked[nT] = True
-                    
-        
-              
+
 
 def createFirst(ter , nonT ):
     checked = dict()
@@ -225,9 +229,6 @@ def createFirst(ter , nonT ):
     for i in list(nonT.keys()):
         checked[i] = False
         First[i] = []
-    print("list")
-    print(checked)
-    print(First)
     #---- first --------
     for i in list(nonT.keys()):
         if(not checked[i]):
@@ -241,11 +242,14 @@ def follow(nT,nonT,checked):
         return
     else:
         for i in nonT.keys():
-            pro = list(nonT[i])
-            for j in pro:
-               # print(i," -- > ",pro , " to check ",nT , " from : ", j)
+            prod = list(nonT[i])
+            for j in prod:
                 if(nT in j):
                     ind = j.index(nT) + 1
+                    """
+                        For follow method, taking first of succeeding character
+                        and follow of preceeding terminal.
+                    """
                     while(ind<len(j)):
                         if('@' not in First[j[ind]]):
                             Follow[nT] += First[j[ind]]
@@ -262,16 +266,19 @@ def follow(nT,nonT,checked):
             
     
     
-def createFollow(ter , nonT ,S):
+def createFollow(nonT ,S):
     checked = dict()
     # --- Initialising the checked ---
+    """
+        setting all non-terminals as false to do follow on it.
+        and setting follow of start symbol to '$'
+    """
     for i in list(nonT.keys()):
         checked[i] = False
         Follow[i] = []
     Follow[S] = ['$']
 
     #calling the follow
-
     for i in list(nonT.keys()):
         if(not checked[i]):
             follow(i,nonT,checked)
@@ -279,8 +286,8 @@ def createFollow(ter , nonT ,S):
                 checked[i] = False
     for i in list(nonT.keys()):
         Follow[i] = list(set(Follow[i]))
-        if('@' in Follow[i]):
-            Follow[i].remove('@')
+        # if('@' in Follow[i]):
+        #     Follow[i].remove('@')
 
 
 #------------------------ First and Follow ends --------------------
@@ -330,7 +337,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
     for i in rule:
         print(i)
 
-    # -------  To find the reduction rules - -- - -- ---
+    # finding reduction rules
     accept, reduce = toReduce(rule, -1, S)
 
     print("reduce")
@@ -352,7 +359,7 @@ def slr_parser(prod, term, num_term, start_sym, query):
 
     #-------------- First and Follow ----------
     createFirst(terminals,nonTerminals)
-    createFollow(terminals,nonTerminals,S)
+    createFollow(nonTerminals,S)
 
 
     parseTable = [ ['-' for i in range(len(symbols))] for j in range(len(canonical)) ]
