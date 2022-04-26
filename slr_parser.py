@@ -183,28 +183,11 @@ def parseString(parseTable, rule,string):
 # -----------------------First and Follow --------------------------
 
 # (i) ------ First ---------
-def first4pro(str):
-    fir = []
-    flag = False
-    for i in str:
-        if('@' not in First[i]):
-            fir += First[i]
-            flag = True
-            break
-        else:
-            fir+=First[i]
-            fir.remove('@')
-    if(not flag):
-        fir+=['@']
-
-    return fir
-
 def first(nT,nonT,checked):
     if(checked[nT]):
         return
     else:
         for i in nonT[nT]:
-            #print("production" ,i)
             last = True
             for j in i:
                 if(j is nT):
