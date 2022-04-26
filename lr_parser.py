@@ -1,9 +1,7 @@
-# 1 ----------------- To Find Closure ----------------
-
 def closure(canonical,nonT):
-    J = canonical
+    CAN = canonical
     # iterate through all the non terminals and add to canonical grammar
-    for item in J :
+    for item in CAN :
         """
             Adding closure operator to the productions,
             and creating canonical grammar and appending to J,
@@ -14,16 +12,9 @@ def closure(canonical,nonT):
             # iterates through all production of non terminal
             # and appends to list
             for production in nonT[item[1][index+1]]:
-                if( [item[1][index+1],str('.')+str(production)] not in J):
-                    J.append([item[1][index+1],str('.')+str(production)])
-    return J
-
-
-# ------------------- Ends --------------------------------
-
-
-
-# 2. --------------- Set of Canonical Items ---------------------
+                if( [item[1][index+1],str('.')+str(production)] not in CAN):
+                    CAN.append([item[1][index+1],str('.')+str(production)])
+    return CAN
 
 def setOfItems(start,nonTer,ter):
     canonical.append(closure([['start','.'+start+'$']],nonTer))
@@ -33,7 +24,6 @@ def setOfItems(start,nonTer,ter):
         for symbol in ter:
             if(symbol == '$'):
                 continue
-            #print("grammar : ",grammar)
             goto = False
             shift = False
             close = []
@@ -70,16 +60,11 @@ def setOfItems(start,nonTer,ter):
                     state.append(['G',canonical.index(conI)+1,canonical.index(l)+1,symbol])
                elif(shift):
                    state.append(['S',canonical.index(conI)+1,canonical.index(l)+1,symbol])
-                        
-
-    
-# -----------------------------------------------------------------
 
 
 
-# 3. -----------------Create a Parse Table ------------------------
-
-def toReduce(rule, accept,start):
+# Create a Parse Table
+def assignReduction(rule, accept,start):
     s = ['start',start+'.$']
     reduce = [ [] for i in range(len(canonical)) ]
     for parState in canonical:
@@ -92,15 +77,7 @@ def toReduce(rule, accept,start):
 
     return accept, reduce
 
-               
-
-# ------------------------------------------------------------------
-
-
-
-# 4. --------------------- To Parse --------------------------------
-
-def createParseTable(parseTable, reduce, accept,  ter):
+def generateParseTable(parseTable, reduce, accept,  ter):
     for i in state:
         parseTable[i[1]-1][symbolMap[i[3]]] = i[0]+str(i[2]-1)
 
@@ -156,6 +133,7 @@ def parseString(parseTable, rule,string):
             if(c == 'a'):
                 flag = True
                 break
+            
             pt = parseTable[int(st.top())][symbolMap[string[index]]][1:]
             pt = int(pt)
             if( c == 'R'):
@@ -231,9 +209,9 @@ def lr_parser(prod, term, num_term, start_sym, query):
     for i in rule:
         print(i)
 
-    # -------  To find the reduction rules - -- - -- ---
+    # add reduction rules
     reduce = [ [] for _ in range(len(canonical)) ]
-    accept, reduce = toReduce(rule,-1,Start)
+    accept, reduce = assignReduction(rule,-1,Start)
 
     print("reduce")
     for count,i in enumerate(reduce):
@@ -252,7 +230,7 @@ def lr_parser(prod, term, num_term, start_sym, query):
         terminals.remove(i)
 
     parseTable = [ ['-' for _ in range(len(symbols))] for _ in range(len(canonical)) ]
-    parseTable = createParseTable(parseTable, reduce, accept, terminals)
+    parseTable = generateParseTable(parseTable, reduce, accept, terminals)
 
     # ---Parse Table-----
     print('Parse Table') 
