@@ -113,10 +113,6 @@ class Stack:
         parent's implementation of str(), we will get reversed order of
         elements.
         """
-        #: You can reverse elements and use supper `__str__` method, or 
-        #: implement it's behavior by yourself.
-        #: I choose to add 'stack' in the begging in order to differ list and
-        #: stack instances.
         return 'stack [{}]'.format(', '.join([ str(i) for i in reversed(self.__storage) ]))
 
 #--------------------Stack Defn ENDS ------------------------------------------

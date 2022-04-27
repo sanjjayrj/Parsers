@@ -11,7 +11,7 @@ from slr_parser import slr_parser
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1038, 699)
+        MainWindow.setFixedSize(1038, 699)
         MainWindow.setWhatsThis("")
         MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
 "color: rgb(225, 225, 255);")
         self.nLabel.setObjectName("nLabel")
         self.ProductionLabel = QtWidgets.QLabel(self.centralwidget)
-        self.ProductionLabel.setGeometry(QtCore.QRect(580, 50, 271, 16))
+        self.ProductionLabel.setGeometry(QtCore.QRect(580, 50, 300, 16))
         self.ProductionLabel.setStyleSheet("font: 75 11pt \"Consolas\";\n"
 "text-decoration: underline;\n"
 "color: rgb(225, 225, 255);")

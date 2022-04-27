@@ -133,10 +133,6 @@ class Stack:
         parent's implementation of str(), we will get reversed order of
         elements.
         """
-        #: You can reverse elements and use supper `__str__` method, or 
-        #: implement it's behavior by yourself.
-        #: I choose to add 'stack' in the begging in order to differ list and
-        #: stack instances.
         return 'stack [{}]'.format(', '.join([ str(i) for i in reversed(self.__storage) ]))
 
 #--------------------Stack Defn ENDS ------------------------------------------
@@ -162,7 +158,7 @@ def parseString(parseTable, rule,string):
                 if(l >= st.length()):
                     break
                 else:
-                    for i in range(l):
+                    for _ in range(l):
                         st.pop()
                     top = int(st.top())
                     st.push(rule[pt][0])
@@ -176,13 +172,8 @@ def parseString(parseTable, rule,string):
         print(e)
         return False    
         
-# ------------------------------------------------------------------
 
-
-
-# -----------------------First and Follow --------------------------
-
-# (i) ------ First ---------
+# First
 def first(nT,nonT,checked):
     if(checked[nT]):
         return
@@ -235,7 +226,7 @@ def createFirst(ter , nonT ):
             first(i,nonT,checked)
             First[i] = list(set(First[i]))
 
-    #(ii) ------- Follow------------
+# Follow
 
 def follow(nT,nonT,checked):
     if(checked[nT]):
